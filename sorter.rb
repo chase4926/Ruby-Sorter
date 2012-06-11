@@ -169,8 +169,13 @@ Video:
 - mov
 - mkv
 - 3gp
+- ogv
+- mpg
+- flv
 Sound: 
 - wav
+- wma
+- ac3
 - mp3
 - ogg
 - flac
@@ -178,6 +183,9 @@ Archive:
 - rar
 - 7z
 - zip
+- tar
+- gz
+- ace
 Image: 
 - jpg
 - gif
