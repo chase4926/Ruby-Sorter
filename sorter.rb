@@ -1,4 +1,3 @@
-
 # WARNING!!! EXPERIMENTAL!!!
 # COULD POTENTIALLY HARM FILES!!!
 # This will attempt to sort a chosen folder into catergories
@@ -113,14 +112,7 @@ vprint_line()
 
 # Step 3: Sort that hash using the file extentions
 # 
-# Hierarchy:
-# 
-# Executables -> Movies -> Sounds -> Documents -> Other
-# 
-
-#type_priority(type)
-
-#File_Extensions::
+# The hierarchy is the top->bottom order on the bottom of the script
 
 type_hash = Hash.new()
 list_hash.each do |item|
@@ -153,8 +145,7 @@ end
 type_hash.each do |item|
   from, to = item
   from = "#{$SORT_DIR}/#{from}"
-  to = "#{$SORT_DIR}/#{to}"
-  to  += 's'
+  to = "#{$SORT_DIR}/#{to}s"
   puts "Transferring: #{from} => #{to}"
   sleep(0.01)
   FileUtils.mv(from, to)
