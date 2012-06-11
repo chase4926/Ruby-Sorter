@@ -14,31 +14,6 @@ require 'fileutils'
 Dir.chdir(File.dirname(__FILE__))
 $:.unshift File.dirname(__FILE__)
 
-
-if ARGV.empty?() then
-  puts 'This program requires command-line arguments to function.'
-  puts "Run this program with the argument -? or -help to learn more.\n\n"
-  Process.exit()
-end
-
-if ARGV.include?('-?') or ARGV.include?('/?') or ARGV.include?('-help') or ARGV.include?('/help') then
-  puts "USAGE: ruby sorter.rb <directory to sort> <arguments>\n\n"
-  puts "ARGUMENTS:\n"
-  puts "-? or -help\tDisplays this message."
-  puts "-v\t\tToggles verbosity on."
-  Process.exit()
-end
-
-if ARGV.include?('-v') or ARGV.include?('/v') then
-  $VERBOSE = true
-else
-  $VERBOSE = false
-end
-
-
-$SORT_DIR = ARGV[0].gsub('\\', '/') # Those pesky Windows users and their backslashes
-ARGV.clear()
-
 $TYPES_HASH = YAML::load(DATA)
 
 
@@ -71,85 +46,72 @@ def recursive_search_directory(directory)
   return result.compact
 end
 
-
-# Step 1: Acquire list of all files in folder to sort
-
-list = recursive_search_directory($SORT_DIR)
-list.each_index do |i|
-  list[i] = list[i].split('/', 2)[1]
+def priority_to_type(priority)
+  return $TYPES_HASH.keys().reverse()[priority]
 end
 
-
-vp list
-vprint_line()
-
-# Step 2: Sort those files into a hash, group files in same parent folder together
-
-list.each_index do |i|
-  last_folder = $SORT_DIR.split('/').last()
-  list[i] = list[i].split("#{last_folder}/").last()
-end
-
-
-list_hash = Hash.new()
-list.each_index do |i|
-  item = list[i]
-  if item.include?('/')
-    folder_name = item.split('/')[0]
-    next if $TYPES_HASH.keys().include?(folder_name[0..-2])
-    if list_hash[folder_name] == nil then
-      list_hash[folder_name] = []
-    end
-    list_hash[folder_name] << item.split('/').last
-  else
-    list_hash[item] = [item]
-  end
-end
-list = nil
-
-
-vp list_hash
-vprint_line()
-
-# Step 3: Sort that hash using the file extentions
-# 
-# The hierarchy is the top->bottom order on the bottom of the script
-
-type_hash = Hash.new()
-list_hash.each do |item|
-  parent, files = item
-  type_hash[parent] = 'Other' # Set it to the default type
+def determine_path_types(path)
+  files = recursive_search_directory(path)
+  result = Hash.new()
   files.each do |file|
-    file_type = file_extension_to_type(file.split('.').last())
-    file_priority = type_priority(file_type)
-    if file_priority > type_priority(type_hash[parent]) then
-      type_hash[parent] = file_type
+    file.gsub!("#{path}/", '')
+    parent_folder = file.split('/').first()
+    priority = type_priority(file_extension_to_type(file.split('.').last()))
+    if result[parent_folder] == nil or result[parent_folder] < priority then
+      result[parent_folder] = priority
     end
   end
+  result.each do |item|
+    key, priority = item
+    result[key] = priority_to_type(priority)
+  end
+  return result
 end
 
-
-vp type_hash
-vprint_line()
-
-# Step 4: Create the folders if they don't already exist
-
-$TYPES_HASH.keys().each do |folder_name|
-  folder_path = "#{$SORT_DIR}/#{folder_name +'s'}"
-  unless File.directory?(folder_path) or not type_hash.values().include?(folder_name) then
-    Dir.mkdir(folder_path)
+def sort(path)
+  path_types = determine_path_types(path)
+  # Create folders based on those path types
+  $TYPES_HASH.keys().each do |folder_name|
+    folder_path = "#{path}/#{folder_name +'s'}"
+    unless File.directory?(folder_path) or not path_types.values().include?(folder_name) then
+      Dir.mkdir(folder_path)
+    end
+  end
+  # Move the files
+  path_types.each do |item|
+    from, to = item
+    from = "#{path}/#{from}"
+    to = "#{path}/#{to}s"
+    puts "Transferring: #{from} => #{to}"
+    FileUtils.mv(from, to)
   end
 end
 
-# Step 5: Move the sorted entries into these new folders
 
-type_hash.each do |item|
-  from, to = item
-  from = "#{$SORT_DIR}/#{from}"
-  to = "#{$SORT_DIR}/#{to}s"
-  puts "Transferring: #{from} => #{to}"
-  FileUtils.mv(from, to)
+if ARGV.empty?() then
+  puts 'This program requires command-line arguments to function.'
+  puts "Run this program with the argument -? or -help to learn more.\n\n"
+  Process.exit()
 end
+
+if ARGV.include?('-?') or ARGV.include?('/?') or ARGV.include?('-help') or ARGV.include?('/help') then
+  puts "USAGE: ruby sorter.rb <directory to sort> <arguments>\n\n"
+  puts "ARGUMENTS:\n"
+  puts "-? or -help\tDisplays this message."
+  puts "-v\t\tToggles verbosity on."
+  Process.exit()
+end
+
+if ARGV.include?('-v') or ARGV.include?('/v') then
+  $VERBOSE = true
+else
+  $VERBOSE = false
+end
+
+
+sort(ARGV[0].gsub('\\', '/')) # Those pesky Windows users and their backslashes
+ARGV.clear()
+
 
 __END__
 --- 
