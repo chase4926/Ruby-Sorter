@@ -36,7 +36,7 @@ else
 end
 
 
-$SORT_DIR = ARGV[0].gsub('\\', '/')
+$SORT_DIR = ARGV[0].gsub('\\', '/') # Those pesky Windows users and their backslashes
 ARGV.clear()
 
 $TYPES_HASH = YAML::load(DATA)
@@ -68,8 +68,7 @@ def recursive_search_directory(directory)
   result.each_index do |i|
     result[i] = nil if File.directory?(result[i])
   end
-  result.compact!
-  return result
+  return result.compact
 end
 
 
@@ -149,7 +148,6 @@ type_hash.each do |item|
   from = "#{$SORT_DIR}/#{from}"
   to = "#{$SORT_DIR}/#{to}s"
   puts "Transferring: #{from} => #{to}"
-  sleep(0.01)
   FileUtils.mv(from, to)
 end
 
