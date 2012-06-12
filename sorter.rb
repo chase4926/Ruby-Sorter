@@ -74,6 +74,7 @@ def sort(path)
   $TYPES_HASH.keys().each do |folder_name|
     folder_path = "#{path}/#{folder_name +'s'}"
     unless File.directory?(folder_path) or not path_types.values().include?(folder_name) then
+      puts "Creating directory: #{folder_path}"
       Dir.mkdir(folder_path)
     end
   end
@@ -87,6 +88,23 @@ def sort(path)
   end
 end
 
+def unsort(path)
+  folder_list = []
+  Dir.glob(File.join(path, '*')).each do |path|
+     folder_list << path if File.directory?(path)
+  end
+  folder_list.each do |folder_path|
+    Dir.glob(File.join(folder_path, '*')).each do |sub_item|
+      puts "Transferring: #{sub_item} => #{path}"
+      FileUtils.mv(sub_item, path)
+    end
+    puts "Removing directory: #{folder_path}"
+    FileUtils.rmdir(folder_path)
+  end
+end
+
+# Command-line code below --
+
 
 if ARGV.empty?() then
   puts 'This program requires command-line arguments to function.'
@@ -94,23 +112,35 @@ if ARGV.empty?() then
   Process.exit()
 end
 
-if ARGV.include?('-?') or ARGV.include?('/?') or ARGV.include?('-help') or ARGV.include?('/help') then
-  puts "USAGE: ruby sorter.rb <directory to sort> <arguments>\n\n"
+unsort = false
+directory = ARGV[0].gsub('\\', '/') # Those pesky Windows users and their backslashes
+arguments = ARGV.each_index {|i| ARGV[i].downcase()}
+
+if (arguments & ['-h', '--h', '-help', '--help', '-?', '--?']).length() > 0 then
+  puts "USAGE: ruby sorter.rb <directory> <arguments>\n\n"
   puts "ARGUMENTS:\n"
   puts "-? or -help\tDisplays this message."
   puts "-v\t\tToggles verbosity on."
+  puts "-u or -unsort\tUnsorts the directory."
   Process.exit()
 end
 
-if ARGV.include?('-v') or ARGV.include?('/v') then
+if (arguments & ['-v', '--v', '-verbose', '--verbose']).length() > 0 then
   $VERBOSE = true
 else
   $VERBOSE = false
 end
 
+if (arguments & ['-u', '--u', '-unsort', '--unsort']).length() > 0 then
+  unsort = true
+end
 
-sort(ARGV[0].gsub('\\', '/')) # Those pesky Windows users and their backslashes
-ARGV.clear()
+
+if unsort then
+  unsort(directory)
+else
+  sort(directory)
+end
 
 
 __END__
