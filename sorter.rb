@@ -1,5 +1,4 @@
 
-
 # WARNING!!! EXPERIMENTAL!!!
 # COULD POTENTIALLY HARM FILES!!!
 # This will attempt to sort a chosen folder into catergories
@@ -104,16 +103,21 @@ def unsort(path)
 end
 
 # Command-line code below --
-
+empty = false
 
 if ARGV.empty?() then
-  puts 'This program requires command-line arguments to function.'
-  puts "Run this program with the argument -? or -help to learn more.\n\n"
-  Process.exit()
+  #puts 'This program requires command-line arguments to function.'
+  #puts "Run this program with the argument -? or -help to learn more.\n\n"
+   puts "Are you sure you want to do this? make sure the .rb file is in the right directory.[Y/N]"
+   yes_no = gets.chomp
+   if yes_no == "Y" or yes_no == "y" then directory = Dir.getwd; empty = true
+   elsif yes_no == "N" or yes_no == "n" then puts "Move the file."; Process.exit()
+   else Process.exit()
+   end
 end
 
 unsort = false
-directory = ARGV[0].gsub('\\', '/') # Those pesky Windows users and their backslashes
+directory = ARGV[0].gsub('\\', '/') if empty == false# Those pesky Windows users and their backslashes
 arguments = ARGV.each_index {|i| ARGV[i].downcase()}
 
 if (arguments & ['-h', '--h', '-help', '--help', '-?', '--?']).length() > 0 then
