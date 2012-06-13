@@ -1,5 +1,4 @@
 
-
 # WARNING!!! EXPERIMENTAL!!!
 # COULD POTENTIALLY HARM FILES!!!
 # This will attempt to sort a chosen folder into catergories
@@ -83,6 +82,7 @@ def sort(path)
     from, to = item
     from = "#{path}/#{from}"
     to = "#{path}/#{to}s"
+    next if File.realpath(from) == File.realpath(File.join(Dir.pwd(), __FILE__))
     puts "Transferring: #{from} => #{to}"
     FileUtils.mv(from, to)
   end
@@ -105,15 +105,21 @@ end
 
 # Command-line code below --
 
-
 if ARGV.empty?() then
   puts 'This program requires command-line arguments to function.'
   puts "Run this program with the argument -? or -help to learn more.\n\n"
-  Process.exit()
+  puts "With no arguments, this script will sort the directory it's located in."
+  puts 'Are you sure you want to do this? Make sure this script is in the right directory. [Y/N]'
+  yes_no = gets().chomp()
+  if yes_no.downcase() == 'y' then
+    directory = Dir.getwd()
+  else
+    Process.exit()
+  end
 end
 
 unsort = false
-directory = ARGV[0].gsub('\\', '/') # Those pesky Windows users and their backslashes
+directory = ARGV[0].gsub('\\', '/') unless directory # Those pesky Windows users and their backslashes
 arguments = ARGV.each_index {|i| ARGV[i].downcase()}
 
 if (arguments & ['-h', '--h', '-help', '--help', '-?', '--?']).length() > 0 then
