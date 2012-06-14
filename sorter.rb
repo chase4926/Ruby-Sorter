@@ -6,7 +6,6 @@
 # If you want to edit the configuration of sorted data, see the bottom of this file.
 # Text on bottom is yaml.
 
-
 require 'yaml'
 require 'fileutils'
 
@@ -112,7 +111,6 @@ def determine_path_types(path)
       result[parent_folder] = priority
     end
   end
-  p result
   result.each do |item|
     key, priority = item
     result[key] = priority_to_type(priority)
