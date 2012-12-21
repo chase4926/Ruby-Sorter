@@ -1,10 +1,9 @@
 
-# WARNING!!! EXPERIMENTAL!!!
+# WARNING!!
 # COULD POTENTIALLY HARM FILES!!!
 # This will attempt to sort a chosen folder into catergories
 #
-# If you want to edit the configuration of sorted data, see the bottom of this file.
-# Text on bottom is yaml.
+# If you want to edit the configuration of sorted data, see 'config.yml'.
 
 require 'yaml'
 require 'fileutils'
@@ -12,58 +11,14 @@ require 'fileutils'
 Dir.chdir(File.dirname(__FILE__))
 $:.unshift File.dirname(__FILE__)
 
-$TYPES_HASH = YAML::load(<<yaml_config)
---- 
-Disc: 
-- iso
-- img
-Executable: 
-- exe
-- bat
-- jar
-Video: 
-- avi
-- wmv
-- mp4
-- mov
-- mkv
-- 3gp
-- ogv
-- mpg
-- flv
-Sound: 
-- wav
-- wma
-- ac3
-- mp3
-- ogg
-- flac
-Archive: 
-- rar
-- 7z
-- zip
-- tar
-- gz
-- ace
-Image: 
-- jpg
-- gif
-- jpeg
-- png
-- bmp
-- xcf
-- ico
-Document: 
-- rtf
-- txt
-- doc
-- docx
-- odt
-- pdf
-Other: []
-
-
-yaml_config
+begin
+  File.open('config.yml', 'r') do |file|
+    $TYPES_HASH = YAML::load(file.read())
+  end
+rescue Errno::ENOENT
+  puts '\'config.yml\' not found!'
+  Process.exit()
+end
 
 
 def file_extension_to_type(ext)
@@ -159,8 +114,9 @@ if $0 == __FILE__ then
   if ARGV.empty?() then
     puts 'This program requires command-line arguments to function.'
     puts "Run this program with the argument -? or -help to learn more.\n\n"
-    puts "With no arguments, this script will sort the directory it's located in."
-    puts 'Are you sure you want to do this? Make sure this script is in the right directory. [Y/N]'
+    puts 'With no arguments, this script will sort the directory it\'s located in.'
+    puts "Are you sure you want to do this? [y/N]\n\n"
+    print '>>'
     yes_no = gets().chomp()
     if yes_no.downcase() == 'y' then
       directory = Dir.getwd()
@@ -169,7 +125,6 @@ if $0 == __FILE__ then
     end
   end
   
-  unsort = false
   directory = ARGV[0].gsub('\\', '/') unless directory # Those pesky Windows users and their backslashes
   arguments = ARGV.each_index {|i| ARGV[i].downcase()}
   
@@ -190,6 +145,8 @@ if $0 == __FILE__ then
   
   if (arguments & ['-u', '--u', '-unsort', '--unsort']).length() > 0 then
     unsort = true
+  else
+    unsort = false
   end
   
   if unsort then
